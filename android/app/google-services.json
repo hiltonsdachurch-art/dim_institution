@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "93059052300",
+    "project_id": "dim-marriage-institution",
+    "storage_bucket": "dim-marriage-institution.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:93059052300:android:d331fe05d430b067cc4f29",
+        "android_client_info": {
+          "package_name": "com.example.dim_institution"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwdSYBTXPWXwcdhK-fqHbL7H52EoCtkXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
