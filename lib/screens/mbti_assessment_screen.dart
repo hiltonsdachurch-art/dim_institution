@@ -293,6 +293,42 @@ class _MbtiAssessmentScreenState extends State<MbtiAssessmentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // =========================================================
+                // PASTORAL INTEGRITY ADVISORY CARD
+                // =========================================================
+                Container(
+                  margin: const EdgeInsets.only(bottom: 22),
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFD4AF37), width: 1.2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.balance, color: Color(0xFFD4AF37), size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "IMPORTANT NOTICE: ANSWER WITH UNCOMPROMISING HONESTY",
+                              style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Your answers determine how prospective spouses see your marital character and compatibility. Furthermore, the Gatekeeper and your Marriage Shepherd will use this exact report to conduct verification interviews and provide lifelong marriage guidance.\n\n"
+                        "Answering falsely or trying to guess the 'best' answer will lead to mismatched introductions and inaccurate counseling. Answer according to who you truly are today.",
+                        style: TextStyle(color: Colors.white, fontSize: 12, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -446,7 +482,7 @@ class _MbtiAssessmentScreenState extends State<MbtiAssessmentScreen> {
                 _buildDropdown("Financial Philosophy", _financialGoal, ['Debt-Free & Long-Term Wealth', 'Enterprise & Asset Expansion', 'Balanced Work-Life & Property', 'Generational Legacy & Stewardship'], (v) => setState(() => _financialGoal = v!)),
                 const SizedBox(height: 14),
 
-                _buildDropdown("Family Intentions", _familyIntention, ['Children in 1-2 Years', 'Desires Large Family', 'Open to Children', 'No Children Intended'], (v) => setState(() => _familyIntention = v!)),
+                _buildDropdown("Family Intentions", _familyIntention, ['Children in 1-2 Years', 'Desires Large Family', 'Open to Children', 'No Children Intended'], (v) => setState(() => _familyIntention = v!),),
                 const SizedBox(height: 16),
 
                 const Text("Philosophy on Marriage Covenant", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),

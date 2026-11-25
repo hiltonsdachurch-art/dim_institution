@@ -70,7 +70,61 @@ class _CovenantQuizScreenState extends State<CovenantQuizScreen> {
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(
               children: [
-                // Header Progress
+                // =========================================================
+                // SOLEMN PASTORAL INTEGRITY ADVISORY CARD (CRUCIAL NOTICE)
+                // =========================================================
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFD4AF37), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFD4AF37).withOpacity(0.12),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.balance, color: Color(0xFFD4AF37), size: 22),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "PASTORAL INTEGRITY ADVISORY: ANSWER WITH COMPLETE HONESTY",
+                              style: TextStyle(
+                                color: Color(0xFFD4AF37),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Please pause and read carefully before answering:\n\n"
+                        "• Public Compatibility: Your honest answers shape the personality badge and compatibility breakdown that prospective partners view. Answering who you 'wish you were' rather than who you truly are will attract the wrong partner and sabotage real marriage compatibility.\n\n"
+                        "• Shepherd Counseling & Guidance: The Gatekeeper and your assigned Marriage Shepherd will use this exact report to conduct your private verification interviews, score your emotional maturity, and provide lifelong marital guidance.\n\n"
+                        "There are no 'right' or 'wrong' personality types in holy matrimony—only honest ones. Answer according to your authentic daily reactions, not an idealized version of yourself.",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Header Progress Indicator
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -96,7 +150,7 @@ class _CovenantQuizScreenState extends State<CovenantQuizScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Likert Questions
+                // 7-Point Likert Scale Questions
                 ...questions.map((q) {
                   return LikertScaleWidget(
                     questionText: q.text,
@@ -121,7 +175,7 @@ class _CovenantQuizScreenState extends State<CovenantQuizScreen> {
                     ),
                     child: Text(
                       answered == questions.length
-                          ? "COMPUTE FULL PERSONALITY DOSSIER"
+                          ? "COMPUTE AUTHENTIC PERSONALITY DOSSIER"
                           : "ANSWER ALL QUESTIONS ($answered/${questions.length})",
                       style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.8),
                     ),
