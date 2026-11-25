@@ -7,6 +7,7 @@ import '../services/family_service.dart';
 import '../services/appointment_service.dart';
 import '../services/sound_service.dart';
 import 'institutional_home_screen.dart';
+import 'personality_report_screen.dart';
 
 class FamilyDashboardScreen extends StatefulWidget {
   final String familyId;
@@ -21,10 +22,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   final FamilyService _familyService = FamilyService();
   final AppointmentService _appointmentService = AppointmentService();
 
-  // Admin Direct Channels
-  final String _adminWhatsAppNumber = "+27820000000"; // Institutional WhatsApp
-  final String _adminPhoneNumber = "+27820000000";    // Direct Phone Call
-  final String _adminEmail = "shepherd@dim.institution"; // Encrypted Email
+  final String _adminWhatsAppNumber = "+27820000000";
+  final String _adminPhoneNumber = "+27820000000";
+  final String _adminEmail = "shepherd@dim.institution";
 
   Future<void> _openWhatsApp() async {
     final uri = Uri.parse("https://wa.me/${_adminWhatsAppNumber.replaceAll('+', '')}?text=Hello%20DIM%20Shepherd,%20this%20is%20from%20our%20Family%20Covenant%20Profile.");
@@ -108,7 +108,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Pick Date & Time
                 const Text("Proposed Date & Time:", style: TextStyle(color: Colors.white70, fontSize: 12)),
                 const SizedBox(height: 6),
                 InkWell(
@@ -353,7 +352,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Stream active appointments
                           StreamBuilder<List<AppointmentBooking>>(
                             stream: _appointmentService.getFamilyAppointmentsStream(family.id),
                             builder: (ctx, appSnap) {
@@ -374,32 +372,84 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // Spousal Psychometrics
+                    // SPOUSAL PSYCHOMETRICS WITH FULL 6-CHAPTER REPORT INSPECTION
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("HUSBAND MBTI", style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
-                                Text(family.spouseAName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                                Text("Verified: ${family.spouseAMbti}", style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.compare_arrows, color: Color(0xFFD4AF37)),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text("WIFE MBTI", style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
-                                Text(family.spouseBName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                                Text("Verified: ${family.spouseBMbti}", style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 12)),
-                              ],
-                            ),
+                          const Text("SPOUSAL RELATIONSHIP PROFILES", style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              // Husband Card
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(10)),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text("HUSBAND", style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      Text(family.spouseAName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text("Type: ${family.spouseAMbti}", style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 12)),
+                                      const SizedBox(height: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PersonalityReportScreen(
+                                                personName: "${family.spouseAName} (Husband)",
+                                                fullCode: family.spouseAMbti,
+                                                scorePercentages: family.spouseAScores,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: const Color(0xFFD4AF37)),
+                                        child: const Text("VIEW REPORT", style: TextStyle(fontSize: 10)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
+                              // Wife Card
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(10)),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text("WIFE", style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      Text(family.spouseBName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text("Type: ${family.spouseBMbti}", style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 12)),
+                                      const SizedBox(height: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PersonalityReportScreen(
+                                                personName: "${family.spouseBName} (Wife)",
+                                                fullCode: family.spouseBMbti,
+                                                scorePercentages: family.spouseBScores,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: const Color(0xFFD4AF37)),
+                                        child: const Text("VIEW REPORT", style: TextStyle(fontSize: 10)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -451,7 +501,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           Text("Requested: ${apt.proposedDateTime.toIso8601String().substring(0, 16).replaceAll('T', ' ')}", style: const TextStyle(color: Colors.white70, fontSize: 11)),
           Text("Agenda: ${apt.agendaTopic}", style: const TextStyle(color: Colors.white38, fontSize: 11)),
 
-          // Alternative Time Proposed by Admin
           if (apt.status == AppointmentStatus.rescheduleProposedByAdmin && apt.adminSuggestedDateTime != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -460,7 +509,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("The Admin suggested this alternative time:\n${apt.adminSuggestedDateTime!.toIso8601String().substring(0, 16).replaceAll('T', ' ')}", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("Admin proposed alternative time:\n${apt.adminSuggestedDateTime!.toIso8601String().substring(0, 16).replaceAll('T', ' ')}", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () async {
