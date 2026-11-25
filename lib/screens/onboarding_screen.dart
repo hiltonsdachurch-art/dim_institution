@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_kyc_service.dart';
+import '../widgets/legal_policy_modal.dart';
 import 'mbti_assessment_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -24,6 +25,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Legal Checkbox Acknowledgment
+  bool _acceptedTerms = false;
+  bool _acceptedPrivacy = false;
+
   Future<void> _pickBirthDate() async {
     final DateTime initialDate = DateTime(2000, 1, 1);
     final DateTime firstDate = DateTime(1940);
@@ -34,19 +39,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFD4AF37),
-              onPrimary: Color(0xFF0F172A),
-              surface: Color(0xFF1E293B),
-              onSurface: Colors.white,
-            ),
+      builder: (context, child) => Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFFD4AF37),
+            onPrimary: Color(0xFF0F172A),
+            surface: Color(0xFF1E293B),
           ),
-          child: child!,
-        );
-      },
+        ),
+        child: child!,
+      ),
     );
 
     if (picked != null) {
@@ -90,6 +92,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (_selectedDob == null) {
       setState(() => _errorMessage = "Please verify your date of birth (Strict 18+).");
+      return;
+    }
+
+    if (!_acceptedTerms || !_acceptedPrivacy) {
+      setState(() => _errorMessage = "You must acknowledge both the Terms of Membership and Privacy Policy to register.");
       return;
     }
 
@@ -167,12 +174,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Identity & Verification Credentials",
+                    "Candidate Identity & Verification Gate",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    "Specify your gender and legal credentials. ID upload and Facial Photo can be skipped for now, but both are required before requesting introductions.",
+                    "DIM is an honorable covenant agency. Specify your gender and credentials. ID and facial photo can be skipped now, but both are required before requesting introductions.",
                     style: TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
                   ),
                   const SizedBox(height: 20),
@@ -201,7 +208,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const SizedBox(height: 18),
                   ],
 
-                  // Gender Selection
+                  // Gender
                   const Text("Gender Identity", style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Row(
@@ -324,7 +331,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Document 1: Government ID (Optional / Skippable)
+                  // ID File Picker
                   InkWell(
                     onTap: _pickGovernmentId,
                     borderRadius: BorderRadius.circular(8),
@@ -364,7 +371,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Document 2: Live Facial Photo / Clear Portrait (Optional / Skippable)
+                  // Facial Photo Picker
                   InkWell(
                     onTap: _pickLiveFacialPhoto,
                     borderRadius: BorderRadius.circular(8),
@@ -392,7 +399,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                                 ),
                                 Text(
-                                  _selectedFacePhoto == null ? "Selfie or clear face photo for gatekeeper verification." : "Portrait attached.",
+                                  _selectedFacePhoto == null ? "Clear portrait for Gatekeeper verification." : "Portrait attached.",
                                   style: TextStyle(color: _selectedFacePhoto == null ? Colors.white38 : const Color(0xFF34D399), fontSize: 10),
                                 ),
                               ],
@@ -402,9 +409,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 22),
 
-                  // Submit Button
+                  // --- LEGAL CHECKBOXES ---
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Column(
+                      children: [
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _acceptedTerms,
+                          activeColor: const Color(0xFFD4AF37),
+                          checkColor: const Color(0xFF0F172A),
+                          title: Row(
+                            children: [
+                              const Expanded(
+                                child: Text("I acknowledge and agree to the ", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ),
+                              InkWell(
+                                onTap: () => LegalPolicyModal.showTermsAndConditions(context),
+                                child: const Text(
+                                  "Terms of Membership",
+                                  style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                                ),
+                              ),
+                            ],
+                          ),
+                          onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
+                        ),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _acceptedPrivacy,
+                          activeColor: const Color(0xFFD4AF37),
+                          checkColor: const Color(0xFF0F172A),
+                          title: Row(
+                            children: [
+                              const Expanded(
+                                child: Text("I consent to the POPIA-compliant ", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ),
+                              InkWell(
+                                onTap: () => LegalPolicyModal.showPrivacyPolicy(context),
+                                child: const Text(
+                                  "Privacy Policy Vault",
+                                  style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                                ),
+                              ),
+                            ],
+                          ),
+                          onChanged: (val) => setState(() => _acceptedPrivacy = val ?? false),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Submit
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -422,7 +486,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
                             )
                           : const Text(
-                              "CONTINUE TO MARRIAGE PERSONALITY QUIZ",
+                              "ACKNOWLEDGE & PROCEED TO QUIZ",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
                             ),
                     ),

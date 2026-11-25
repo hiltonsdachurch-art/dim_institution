@@ -82,7 +82,7 @@ class AdminAppointmentsScreen extends StatelessWidget {
 
           final appointments = snapshot.data!;
           if (appointments.isEmpty) {
-            return const Center(child: Text("No counsel appointments requested.", style: TextStyle(color: Colors.white38)));
+            return const Center(child: Text("No advisory appointments requested.", style: TextStyle(color: Colors.white38)));
           }
 
           return ListView.builder(

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/family_model.dart';
 import '../services/sound_service.dart';
 import '../services/covenant_quiz_service.dart';
+import '../widgets/legal_policy_modal.dart';
 import 'covenant_quiz_screen.dart';
 import 'family_dashboard_screen.dart';
 
@@ -27,7 +28,10 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Individual Spousal Test Results
+  // Legal Checkbox Acknowledgment
+  bool _acceptedTerms = false;
+  bool _acceptedPrivacy = false;
+
   PersonalityCalculationResult? _husbandResult;
   PersonalityCalculationResult? _wifeResult;
 
@@ -94,6 +98,11 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
       return;
     }
 
+    if (!_acceptedTerms || !_acceptedPrivacy) {
+      setState(() => _errorMessage = "You must acknowledge both the Terms of Membership and Privacy Policy to enroll.");
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -134,7 +143,7 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
           "${DateTime.now().toIso8601String().substring(0, 10)}: Enrolled in DIM Family Network",
         ],
         shepherdCounselNotes: [
-          "Family enrolled. Husband MBTI: ${_husbandResult?.fullCode ?? 'Pending'}, Wife MBTI: ${_wifeResult?.fullCode ?? 'Pending'}.",
+          "Family enrolled under verified membership contract.",
         ],
         createdAt: DateTime.now(),
       );
@@ -237,7 +246,7 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Anniversary
+                  // Anniversary Date
                   InkWell(
                     onTap: _pickAnniversary,
                     borderRadius: BorderRadius.circular(8),
@@ -264,7 +273,7 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Login Credentials
+                  // Credentials
                   Row(
                     children: [
                       Expanded(
@@ -306,7 +315,7 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // --- DEDICATED INDIVIDUAL SPOUSAL TEST SECTION ---
+                  // Individual Tests
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -323,12 +332,11 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                         ),
                         const SizedBox(height: 6),
                         const Text(
-                          "Each spouse taps their button when ready. The results attach to each name for the Admin's counseling dossier.",
+                          "Each spouse taps their button when ready. The results attach to each name for the Admin's advisory dossier.",
                           style: TextStyle(color: Colors.white60, fontSize: 11),
                         ),
                         const SizedBox(height: 16),
 
-                        // Husband Button
                         _buildSpouseTestCard(
                           spouseRole: "Husband",
                           name: _husbandNameController.text.trim().isNotEmpty ? _husbandNameController.text.trim() : "Husband",
@@ -337,7 +345,6 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Wife Button
                         _buildSpouseTestCard(
                           spouseRole: "Wife",
                           name: _wifeNameController.text.trim().isNotEmpty ? _wifeNameController.text.trim() : "Wife",
@@ -349,11 +356,11 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Membership Tier
+                  // Tier
                   RadioListTile<DimMembershipTier>(
                     contentPadding: EdgeInsets.zero,
                     title: const Text("Full DIM Shepherd Membership (Recommended)", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                    subtitle: const Text("Includes WhatsApp, phone, email direct access, and Teams/Zoom counseling.", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                    subtitle: const Text("Includes WhatsApp, phone, email direct access, and Teams/Zoom advisory.", style: TextStyle(color: Colors.white54, fontSize: 10)),
                     value: DimMembershipTier.shepherdedFamilyMember,
                     groupValue: _tier,
                     activeColor: const Color(0xFFD4AF37),
@@ -362,10 +369,68 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                   RadioListTile<DimMembershipTier>(
                     contentPadding: EdgeInsets.zero,
                     title: const Text("Independent Covenant Registry (Go Alone)", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                    subtitle: const Text("You will have access to our independent covenant resources and support.", style: TextStyle(color: Colors.white54, fontSize: 10)),
                     value: DimMembershipTier.independentGraduated,
                     groupValue: _tier,
                     activeColor: const Color(0xFFD4AF37),
                     onChanged: (v) => setState(() => _tier = v!),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Legal Checkboxes for Married Couples
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Column(
+                      children: [
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _acceptedTerms,
+                          activeColor: const Color(0xFFD4AF37),
+                          checkColor: const Color(0xFF0F172A),
+                          title: Row(
+                            children: [
+                              const Expanded(
+                                child: Text("We agree to the ", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ),
+                              InkWell(
+                                onTap: () => LegalPolicyModal.showTermsAndConditions(context),
+                                child: const Text(
+                                  "Terms of Covenant Membership",
+                                  style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                                ),
+                              ),
+                            ],
+                          ),
+                          onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
+                        ),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _acceptedPrivacy,
+                          activeColor: const Color(0xFFD4AF37),
+                          checkColor: const Color(0xFF0F172A),
+                          title: Row(
+                            children: [
+                              const Expanded(
+                                child: Text("We consent to the ", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ),
+                              InkWell(
+                                onTap: () => LegalPolicyModal.showPrivacyPolicy(context),
+                                child: const Text(
+                                  "Privacy Policy & Vault Protections",
+                                  style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                                ),
+                              ),
+                            ],
+                          ),
+                          onChanged: (val) => setState(() => _acceptedPrivacy = val ?? false),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -377,7 +442,7 @@ class _MarriedOnboardingScreenState extends State<MarriedOnboardingScreen> {
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37), foregroundColor: const Color(0xFF0F172A)),
                       child: _isLoading
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFF0F172A), strokeWidth: 2))
-                          : const Text("SOLEMNIZE HOUSEHOLD PROFILE", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                          : const Text("ACKNOWLEDGE & SOLEMNIZE HOUSEHOLD PROFILE", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.8)),
                     ),
                   ),
                 ],

@@ -71,7 +71,7 @@ class AppointmentBooking {
       adminSuggestedDateTime: map['adminSuggestedDateTime'] != null
           ? DateTime.tryParse(map['adminSuggestedDateTime'])
           : null,
-      agendaTopic: map['agendaTopic'] ?? 'General Pastoral Counsel',
+      agendaTopic: map['agendaTopic'] ?? 'General Pastoral Advisory',
       status: AppointmentStatus.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => AppointmentStatus.pendingAdminAcceptance,

@@ -59,6 +59,8 @@ class IntroductionRequest {
   final String recipientUid;
   final String recipientAlias;
   final IntroState state;
+  final bool tier2Paid;
+  final double tier2Amount;
   final CompetencyScorecard? candidateAScorecard;
   final CompetencyScorecard? candidateBScorecard;
   final String? rejectionReason;
@@ -72,6 +74,8 @@ class IntroductionRequest {
     required this.recipientUid,
     required this.recipientAlias,
     required this.state,
+    this.tier2Paid = false,
+    this.tier2Amount = 700.0,
     this.candidateAScorecard,
     this.candidateBScorecard,
     this.rejectionReason,
@@ -87,6 +91,8 @@ class IntroductionRequest {
       'recipientUid': recipientUid,
       'recipientAlias': recipientAlias,
       'state': state.name,
+      'tier2Paid': tier2Paid,
+      'tier2Amount': tier2Amount,
       'candidateAScorecard': candidateAScorecard?.toMap(),
       'candidateBScorecard': candidateBScorecard?.toMap(),
       'rejectionReason': rejectionReason,
@@ -106,6 +112,8 @@ class IntroductionRequest {
         (e) => e.name == map['state'],
         orElse: () => IntroState.requested,
       ),
+      tier2Paid: map['tier2Paid'] ?? false,
+      tier2Amount: (map['tier2Amount'] as num?)?.toDouble() ?? 700.0,
       candidateAScorecard: map['candidateAScorecard'] != null
           ? CompetencyScorecard.fromMap(map['candidateAScorecard'] as Map<String, dynamic>)
           : null,

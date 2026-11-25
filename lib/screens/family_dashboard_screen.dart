@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/family_model.dart';
 import '../models/appointment_model.dart';
+import '../models/payment_model.dart';
 import '../services/family_service.dart';
 import '../services/appointment_service.dart';
 import '../services/sound_service.dart';
 import 'institutional_home_screen.dart';
 import 'personality_report_screen.dart';
+import 'payment_checkout_screen.dart';
 
 class FamilyDashboardScreen extends StatefulWidget {
   final String familyId;
@@ -47,6 +49,19 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     }
   }
 
+  void _openTier3RenewalModal(FamilyProfile family) {
+    showDialog(
+      context: context,
+      builder: (ctx) => PaymentCheckoutScreen(
+        tier: PaymentTier.tier3ShepherdMonthly,
+        referenceId: family.id,
+        payerUid: FirebaseAuth.instance.currentUser?.uid ?? 'family_uid',
+        payerAlias: family.familyName,
+        onPaymentSuccessful: () => setState(() {}),
+      ),
+    );
+  }
+
   void _showBookAppointmentDialog(FamilyProfile family) {
     MeetingPlatform platform = MeetingPlatform.zoom;
     DateTime selectedDate = DateTime.now().add(const Duration(days: 2));
@@ -63,7 +78,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             children: const [
               Icon(Icons.video_camera_front_outlined, color: Color(0xFFD4AF37), size: 24),
               SizedBox(width: 10),
-              Text("Schedule Shepherd Counsel", style: TextStyle(color: Colors.white, fontSize: 16)),
+              Text("Schedule Shepherd Advisory", style: TextStyle(color: Colors.white, fontSize: 16)),
             ],
           ),
           content: SingleChildScrollView(
@@ -147,7 +162,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                   maxLines: 2,
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                   decoration: const InputDecoration(
-                    labelText: "Counsel Agenda / Topic",
+                    labelText: "Advisory Agenda / Topic",
                     hintText: "e.g., Annual Check-in, Financial realignment, Communication mediation...",
                     filled: true,
                     fillColor: Color(0xFF0F172A),
@@ -266,61 +281,116 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // DIRECT ADMIN CONTACT HUB (WhatsApp, Call, Email)
+                    // TIER 3 SHEPHERD MEMBERSHIP STATUS & R199 BILLING CARD
                     Container(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
+                        border: Border.all(
+                          color: isShepherded ? const Color(0xFF10B981) : Colors.white24,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            children: const [
-                              Icon(Icons.headset_mic_outlined, color: Color(0xFFD4AF37), size: 18),
-                              SizedBox(width: 8),
-                              Text("DIRECT SHEPHERD ASSISTANCE", style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(isShepherded ? Icons.verified : Icons.lock_outline, color: isShepherded ? const Color(0xFF34D399) : Colors.white38, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isShepherded ? "TIER 3: ACTIVE SHEPHERD MEMBERSHIP" : "INDEPENDENT COVENANT (INACTIVE TIER 3)",
+                                    style: TextStyle(color: isShepherded ? const Color(0xFF34D399) : Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              Text("R199 / month", style: TextStyle(color: isShepherded ? const Color(0xFFD4AF37) : Colors.white38, fontWeight: FontWeight.bold, fontSize: 13)),
                             ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isShepherded
+                                ? "Your household has 24/7 priority pastoral access: WhatsApp direct line, phone consultations, emergency dispute mediation, and annual covenant check-ins."
+                                : "Your household is currently navigating independently. Subscribe to Tier 3 to unlock direct WhatsApp and video advisory.",
+                            style: const TextStyle(color: Colors.white60, fontSize: 11, height: 1.4),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _openWhatsApp,
-                                  icon: const Icon(Icons.chat, size: 16, color: Color(0xFF25D366)),
-                                  label: const Text("WhatsApp", style: TextStyle(fontSize: 11)),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-                                ),
+
+                          if (!isShepherded)
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _openTier3RenewalModal(family),
+                                icon: const Icon(Icons.star, size: 16),
+                                label: const Text("ACTIVATE TIER 3 MEMBERSHIP (R199/MO)"),
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37), foregroundColor: const Color(0xFF0F172A)),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _makePhoneCall,
-                                  icon: const Icon(Icons.phone, size: 16, color: Color(0xFFD4AF37)),
-                                  label: const Text("Direct Call", style: TextStyle(fontSize: 11)),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _sendEmail,
-                                  icon: const Icon(Icons.email, size: 16, color: Colors.blueAccent),
-                                  label: const Text("Email", style: TextStyle(fontSize: 11)),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 18),
 
-                    // APPOINTMENT SCHEDULER SECTION (Zoom / Teams)
+                    // DIRECT ADMIN CONTACT HUB (Active if Tier 3 is subscribed)
+                    if (isShepherded) ...[
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.headset_mic_outlined, color: Color(0xFFD4AF37), size: 18),
+                                SizedBox(width: 8),
+                                Text("DIRECT SHEPHERD ASSISTANCE", style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _openWhatsApp,
+                                    icon: const Icon(Icons.chat, size: 16, color: Color(0xFF25D366)),
+                                    label: const Text("WhatsApp", style: TextStyle(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _makePhoneCall,
+                                    icon: const Icon(Icons.phone, size: 16, color: Color(0xFFD4AF37)),
+                                    label: const Text("Direct Call", style: TextStyle(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _sendEmail,
+                                    icon: const Icon(Icons.email, size: 16, color: Colors.blueAccent),
+                                    label: const Text("Email", style: TextStyle(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                    ],
+
+                    // APPOINTMENT SCHEDULER SECTION
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -337,13 +407,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: const [
-                                  Text("PASTORAL COUNSEL APPOINTMENTS", style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                                  Text("PASTORAL ADVISORY APPOINTMENTS", style: TextStyle(color: Color(0xFFD4AF37), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
                                   SizedBox(height: 2),
                                   Text("Zoom & Microsoft Teams Consultations", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               ElevatedButton.icon(
-                                onPressed: () => _showBookAppointmentDialog(family),
+                                onPressed: isShepherded ? () => _showBookAppointmentDialog(family) : () => _openTier3RenewalModal(family),
                                 icon: const Icon(Icons.add, size: 14),
                                 label: const Text("BOOK SESSION", style: TextStyle(fontSize: 11)),
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37), foregroundColor: const Color(0xFF0F172A)),
@@ -357,13 +427,11 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                             builder: (ctx, appSnap) {
                               final appointments = appSnap.data ?? [];
                               if (appointments.isEmpty) {
-                                return const Text("No appointments scheduled. Click 'Book Session' to request counsel.", style: TextStyle(color: Colors.white38, fontSize: 12));
+                                return const Text("No advisory appointments scheduled. Click 'Book Session' to request advisory.", style: TextStyle(color: Colors.white38, fontSize: 12));
                               }
 
                               return Column(
-                                children: appointments.map((apt) {
-                                  return _buildAppointmentTile(apt);
-                                }).toList(),
+                                children: appointments.map((apt) => _buildAppointmentTile(apt)).toList(),
                               );
                             },
                           ),
@@ -372,7 +440,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // SPOUSAL PSYCHOMETRICS WITH FULL 6-CHAPTER REPORT INSPECTION
+                    // SPOUSAL PSYCHOMETRICS
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
@@ -383,7 +451,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                           const SizedBox(height: 14),
                           Row(
                             children: [
-                              // Husband Card
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.all(14),
@@ -416,8 +483,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-
-                              // Wife Card
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.all(14),

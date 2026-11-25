@@ -4,7 +4,7 @@ class InstitutionalInquiry {
   final String id;
   final String senderName;
   final String senderEmail;
-  final String inquiryCategory; // 'Emergency Marital Counsel', 'General Question', 'Pre-Marital Inquiry'
+  final String inquiryCategory; // 'Emergency Marital Advisory', 'General Question', 'Pre-Marital Inquiry'
   final String message;
   final bool isEmergency;
   final DateTime submittedAt;

@@ -52,7 +52,7 @@ class PersonalityReportService {
           friendshipsAndHome:
               "Their home is a private sanctuary. While warm and hospitable to a few cherished friends, they prioritize their spouse above all social circles and avoid chaotic, superficial gatherings.",
           gatekeeperPastoralConclusion:
-              "Counsel for Spouse: Never mock their intuition or dismiss their quiet sensitivity. Speak gently during disagreements and give them space to process their thoughts before expecting an immediate answer.",
+              "Advisory for Spouse: Never mock their intuition or dismiss their quiet sensitivity. Speak gently during disagreements and give them space to process their thoughts before expecting an immediate answer.",
         );
 
       case 'INTJ':
@@ -80,7 +80,7 @@ class PersonalityReportService {
           friendshipsAndHome:
               "Their home is run with efficiency and peace. They maintain a very small, carefully chosen circle of friends and value deep, substantive conversations over small talk.",
           gatekeeperPastoralConclusion:
-              "Counsel for Spouse: Do not mistake their quietness for a lack of affection. Be direct with your emotional needs rather than expecting them to guess, and praise their diligent care for the household.",
+              "Advisory for Spouse: Do not mistake their quietness for a lack of affection. Be direct with your emotional needs rather than expecting them to guess, and praise their diligent care for the household.",
         );
 
       case 'ENFJ':
@@ -108,7 +108,7 @@ class PersonalityReportService {
           friendshipsAndHome:
               "Their home is an open door of warmth and hospitality. They naturally cultivate deep community ties, but they must ensure social commitments never rob their spouse of intimate, quiet evenings together.",
           gatekeeperPastoralConclusion:
-              "Counsel for Spouse: Express spoken gratitude often. Notice the small sacrifices they make daily, and gently protect them from taking on too many external responsibilities.",
+              "Advisory for Spouse: Express spoken gratitude often. Notice the small sacrifices they make daily, and gently protect them from taking on too many external responsibilities.",
         );
 
       default:
@@ -136,7 +136,7 @@ class PersonalityReportService {
           friendshipsAndHome:
               "Builds a home grounded in integrity, welcoming trusted friends while prioritizing the marital union above all outside influences.",
           gatekeeperPastoralConclusion:
-              "Counsel for Spouse: Invest time into understanding their unique cognitive gifts and give them grace as you grow together into one covenant household.",
+              "Advisory for Spouse: Invest time into understanding their unique cognitive gifts and give them grace as you grow together into one covenant household.",
         );
     }
   }
