@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_kyc_service.dart';
+import '../services/liveness_ocr_service.dart';
 import '../widgets/legal_policy_modal.dart';
 import 'mbti_assessment_screen.dart';
 
@@ -25,7 +26,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Legal Checkbox Acknowledgment
+  // Automated OCR & Liveness Diagnostics
+  OcrVerificationResult? _ocrResult;
+  FacialLivenessResult? _livenessResult;
+  bool _isScanningOcr = false;
+  bool _isCheckingLiveness = false;
+
   bool _acceptedTerms = false;
   bool _acceptedPrivacy = false;
 
@@ -66,24 +72,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  Future<void> _pickGovernmentId() async {
+  Future<void> _pickAndScanGovernmentId() async {
+    if (_selectedDob == null) {
+      setState(() => _errorMessage = "Please select your date of birth first so the OCR scanner can verify your age.");
+      return;
+    }
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
       withData: true,
     );
+
     if (result != null && result.files.isNotEmpty) {
-      setState(() => _selectedIdFile = result.files.first);
+      final file = result.files.first;
+      setState(() {
+        _selectedIdFile = file;
+        _isScanningOcr = true;
+      });
+
+      // Run Optical Character Recognition
+      final ocr = await LivenessOcrService.scanGovernmentId(
+        file: file,
+        declaredDob: _selectedDob!,
+        declaredLegalName: _fullNameController.text,
+      );
+
+      setState(() {
+        _ocrResult = ocr;
+        _isScanningOcr = false;
+      });
     }
   }
 
-  Future<void> _pickLiveFacialPhoto() async {
+  Future<void> _pickAndVerifyFacialPhoto() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       withData: true,
     );
+
     if (result != null && result.files.isNotEmpty) {
-      setState(() => _selectedFacePhoto = result.files.first);
+      final file = result.files.first;
+      setState(() {
+        _selectedFacePhoto = file;
+        _isCheckingLiveness = true;
+      });
+
+      // Run Facial Liveness & Quality Analysis
+      final liveness = await LivenessOcrService.verifyFacialPortrait(file: file);
+
+      setState(() {
+        _livenessResult = liveness;
+        _isCheckingLiveness = false;
+      });
     }
   }
 
@@ -125,8 +166,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             candidateAlias: alias,
             gender: _gender,
             ageBracket: ageBracket,
-            hasUploadedId: _selectedIdFile != null,
-            hasUploadedFacePhoto: _selectedFacePhoto != null,
+            hasUploadedId: _selectedIdFile != null && (_ocrResult?.isVerified ?? false),
+            hasUploadedFacePhoto: _selectedFacePhoto != null && (_livenessResult?.passedLiveness ?? false),
           ),
         ),
       );
@@ -153,7 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E293B),
         title: const Text(
-          "CANDIDATE APPLICATION (STEP 1 OF 2)",
+          "CANDIDATE ONBOARDING & BIOMETRICS",
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1),
         ),
       ),
@@ -174,12 +215,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Candidate Identity & Verification Gate",
+                    "Identity & Biometric Verification Gate",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    "DIM is an honorable covenant agency. Specify your gender and credentials. ID and facial photo can be skipped now, but both are required before requesting introductions.",
+                    "DIM uses automated optical OCR to verify 18+ age status and facial presence. ID and facial photo can be skipped now, but both are required before requesting introductions.",
                     style: TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
                   ),
                   const SizedBox(height: 20),
@@ -197,10 +238,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
-                            ),
+                            child: Text(_errorMessage!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
                           ),
                         ],
                       ),
@@ -331,24 +369,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // ID File Picker
+                  // AUTOMATED OCR GOVERNMENT ID SCANNER
                   InkWell(
-                    onTap: _pickGovernmentId,
+                    onTap: _isScanningOcr ? null : _pickAndScanGovernmentId,
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _selectedIdFile == null ? Colors.white24 : const Color(0xFF10B981)),
+                        border: Border.all(
+                          color: _ocrResult?.isVerified == true ? const Color(0xFF10B981) : Colors.white24,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            _selectedIdFile == null ? Icons.upload_file_outlined : Icons.check_circle_outline,
-                            color: _selectedIdFile == null ? const Color(0xFFD4AF37) : const Color(0xFF10B981),
-                            size: 22,
-                          ),
+                          if (_isScanningOcr)
+                            const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Color(0xFFD4AF37), strokeWidth: 2))
+                          else
+                            Icon(
+                              _ocrResult?.isVerified == true ? Icons.check_circle : Icons.document_scanner_outlined,
+                              color: _ocrResult?.isVerified == true ? const Color(0xFF10B981) : const Color(0xFFD4AF37),
+                              size: 22,
+                            ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -359,8 +402,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                                 ),
                                 Text(
-                                  _selectedIdFile == null ? "Can be uploaded now or later before matching." : "ID attached.",
-                                  style: TextStyle(color: _selectedIdFile == null ? Colors.white38 : const Color(0xFF34D399), fontSize: 10),
+                                  _ocrResult != null
+                                      ? _ocrResult!.diagnosticMessage
+                                      : "Optical OCR will verify age 18+ and document authenticity.",
+                                  style: TextStyle(
+                                    color: _ocrResult?.isVerified == true ? const Color(0xFF34D399) : Colors.white38,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ],
                             ),
@@ -371,24 +419,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Facial Photo Picker
+                  // AUTOMATED FACIAL LIVENESS & PORTRAIT CHECK
                   InkWell(
-                    onTap: _pickLiveFacialPhoto,
+                    onTap: _isCheckingLiveness ? null : _pickAndVerifyFacialPhoto,
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _selectedFacePhoto == null ? Colors.white24 : const Color(0xFF10B981)),
+                        border: Border.all(
+                          color: _livenessResult?.passedLiveness == true ? const Color(0xFF10B981) : Colors.white24,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            _selectedFacePhoto == null ? Icons.camera_alt_outlined : Icons.check_circle_outline,
-                            color: _selectedFacePhoto == null ? const Color(0xFFD4AF37) : const Color(0xFF10B981),
-                            size: 22,
-                          ),
+                          if (_isCheckingLiveness)
+                            const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Color(0xFFD4AF37), strokeWidth: 2))
+                          else
+                            Icon(
+                              _livenessResult?.passedLiveness == true ? Icons.face : Icons.camera_alt_outlined,
+                              color: _livenessResult?.passedLiveness == true ? const Color(0xFF10B981) : const Color(0xFFD4AF37),
+                              size: 22,
+                            ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -399,8 +452,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                                 ),
                                 Text(
-                                  _selectedFacePhoto == null ? "Clear portrait for Gatekeeper verification." : "Portrait attached.",
-                                  style: TextStyle(color: _selectedFacePhoto == null ? Colors.white38 : const Color(0xFF34D399), fontSize: 10),
+                                  _livenessResult != null
+                                      ? _livenessResult!.feedback
+                                      : "Scans for live human presence and clear frontal alignment.",
+                                  style: TextStyle(
+                                    color: _livenessResult?.passedLiveness == true ? const Color(0xFF34D399) : Colors.white38,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ],
                             ),
@@ -411,7 +469,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 22),
 
-                  // --- LEGAL CHECKBOXES ---
+                  // Legal Checkboxes
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -429,7 +487,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           title: Row(
                             children: [
                               const Expanded(
-                                child: Text("I acknowledge and agree to the ", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                child: Text("I agree to the ", style: TextStyle(color: Colors.white70, fontSize: 11)),
                               ),
                               InkWell(
                                 onTap: () => LegalPolicyModal.showTermsAndConditions(context),
@@ -486,7 +544,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
                             )
                           : const Text(
-                              "ACKNOWLEDGE & PROCEED TO QUIZ",
+                              "CONTINUE TO PERSONALITY ASSESSMENT",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
                             ),
                     ),

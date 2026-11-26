@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+import 'services/notification_service.dart';
 import 'screens/institutional_home_screen.dart';
 import 'screens/gatekeeper_cockpit_screen.dart';
 import 'screens/admin_case_file_screen.dart';
@@ -15,8 +16,11 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Initialize Native Android Push Notifications & Channels
+    await NotificationService.initialize();
   } catch (e) {
-    debugPrint("Firebase initialization notice: $e");
+    debugPrint("Firebase/Notification initialization notice: $e");
   }
 
   runApp(const DimInstitutionApp());
@@ -126,7 +130,7 @@ class AdminMasterDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Button 2: Pastoral Appointments Desk (Teams & Zoom)
+                // Button 2: Pastoral Appointments Desk
                 SizedBox(
                   width: double.infinity,
                   height: 50,
