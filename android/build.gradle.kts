@@ -16,10 +16,6 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-subprojects {
     plugins.withId("com.android.library") {
         extensions.configure<com.android.build.api.variant.LibraryAndroidComponentsExtension> {
             finalizeDsl { libraryExtension ->
